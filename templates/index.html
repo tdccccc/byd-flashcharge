@@ -262,8 +262,8 @@ function renderSummary(data){
             <div class="hero-stats">
                 <div class="hero-stat"><div class="hs-val" style="color:var(--amb)"><span class="cu" data-t="${s.total_flash_connectors||0}">0</span></div><div class="hs-label">🔌 闪充桩</div></div>
                 <div class="hero-stat"><div class="hs-val" style="color:var(--grn)"><span class="cu" data-t="${s.city_count}">0</span></div><div class="hs-label">🏙️ 覆盖城市</div></div>
-                <div class="hero-stat"><div class="hs-val" style="color:var(--pur)">${s.total_stations}<span style="color:var(--t3);font-size:.8rem"> / 18000</span></div><div class="hs-label">🏢 站中站目标</div></div>
-                <div class="hero-stat"><div class="hs-val" style="color:var(--pur)">0<span style="color:var(--t3);font-size:.8rem"> / 2000</span></div><div class="hs-label">🛣️ 高速站目标</div></div>
+                <div class="hero-stat"><div class="hs-val" style="color:var(--pur)">${s.total_stations}<span style="color:var(--t3);font-size:.8rem"> / 18000</span></div><div class="hs-label">🏢 站中站</div></div>
+                <div class="hero-stat"><div class="hs-val" style="color:var(--pur)">0<span style="color:var(--t3);font-size:.8rem"> / 2000</span></div><div class="hs-label">🛣️ 高速站</div></div>
             </div>
         </div>`;
     document.querySelectorAll('.cu').forEach(el=>countUp(el,parseInt(el.dataset.t)||0));
