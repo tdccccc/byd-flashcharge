@@ -318,14 +318,14 @@ function updateMap(){
     mapChart.setOption({
         tooltip:{trigger:'item',formatter:p=>p.name||''},
         geo:{map:'china',roam:true,zoom:1.2,
-            scaleLimit:{min:1,max:8},
+            scaleLimit:{min:1,max:20},
             itemStyle:{areaColor:'#111827',borderColor:'#1e3a5f',borderWidth:1},
             regions:[],
             emphasis:{itemStyle:{areaColor:'#1a2744'},label:{show:true,color:'#fff',fontSize:10}}},
         series:[{
             type:'scatter',coordinateSystem:'geo',
             data:points,
-            symbolSize:3,
+            symbolSize:2,
             itemStyle:{color:currentType==='高速站'?'#fbbf24':'#38bdf8',opacity:.6},
             emphasis:{itemStyle:{color:'#fbbf24',opacity:1,shadowBlur:10}}
         }]
