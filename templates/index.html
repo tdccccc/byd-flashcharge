@@ -133,9 +133,12 @@
                     <th data-col="rank">#</th>
                     <th data-col="city">城市</th>
                     <th data-col="station_count">站点数</th>
-                    <th data-col="flash_connectors">闪充桩数</th>
+                    <th data-col="flash_connectors">闪充桩</th>
+                    <th data-col="fast_connectors">快充桩</th>
+                    <th data-col="slow_connectors">慢充桩</th>
+                    <th data-col="super_connectors">超充桩</th>
                 </tr></thead>
-                <tbody id="cityTable"><tr><td colspan="4" class="loading">加载中...</td></tr></tbody>
+                <tbody id="cityTable"><tr><td colspan="7" class="loading">加载中...</td></tr></tbody>
             </table>
             </div>
         </div>
@@ -298,7 +301,8 @@ function renderCityTable(cities){
         let rk=i<3?`<span class="rk-t rk${i+1}">${i+1}</span>`:`<span class="rk">${i+1}</span>`;
         return `<tr><td>${rk}</td><td style="font-weight:500">${c.city}</td>
         <td class="nh">${c.station_count}</td>
-        <td>${c.flash_connectors||0}</td></tr>`;
+        <td>${c.flash_connectors||0}</td><td>${c.fast_connectors||0}</td>
+        <td>${c.slow_connectors||0}</td><td>${c.super_connectors||0}</td></tr>`;
     }).join('');
 }
 
