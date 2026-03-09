@@ -20,7 +20,7 @@
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
         .container{max-width:1440px;margin:0 auto;padding:1.5rem}
         .cards-top{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:.8rem}
-        .cards-bottom{display:grid;grid-template-columns:auto 1fr;gap:1rem;margin-bottom:1.5rem}
+        .cards-bottom{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
         .card{background:var(--card);border-radius:16px;padding:1.5rem;border:1px solid var(--bdr);transition:border-color .3s,transform .2s;display:flex;flex-direction:column;min-height:170px}
         .card:hover{border-color:var(--bdr-h);transform:translateY(-2px)}
         .card .card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:auto}
@@ -247,6 +247,7 @@ async function loadData(){
 function renderSummary(data){
     if(!data.latest){document.getElementById('cardsTop').innerHTML='<div class="loading" style="grid-column:1/-1">暂无数据</div>';return;}
     const s=data.latest;
+    const avgConn=s.total_stations>0?((s.total_flash_connectors||0)/s.total_stations).toFixed(1):'--';
     document.getElementById('cardsTop').innerHTML=`
         <div class="card c1">
             <div class="card-top"><div class="ci">⚡</div><div class="label-top">站点总数</div></div>
@@ -259,6 +260,7 @@ function renderSummary(data){
             <div class="card-top"><div class="ci">🔌</div><div class="label-top">闪充桩总数</div></div>
             <div class="card-body">
                 <div class="value cu" data-t="${s.total_flash_connectors||0}">0</div>
+                <div class="delta" style="color:var(--t3);background:rgba(255,255,255,.04)">⌀ ${avgConn} 桩/站</div>
             </div>
         </div>`;
     document.getElementById('cardsBottom').innerHTML=`
@@ -266,9 +268,10 @@ function renderSummary(data){
             <div class="card-top"><div class="ci">🏙️</div><div class="label-top">覆盖城市</div></div>
             <div class="card-body">
                 <div class="value cu" data-t="${s.city_count}">0</div>
+                <div class="delta" style="color:var(--grn);background:rgba(52,211,153,.08)">📍 全国布局</div>
             </div>
         </div>
-        <div class="card c3 card-target">
+        <div class="card c3">
             <div class="card-top"><div class="ci">🎯</div><div class="label-top">2026 目标</div></div>
             <div class="card-body">
                 <div class="value" style="color:var(--pur)"><span class="cu" data-t="${s.total_stations}">0</span> <span style="font-size:1rem;color:var(--t3);font-weight:400">/ 20000</span></div>
@@ -327,8 +330,8 @@ function updateMap(){
         series:[{
             type:'scatter',coordinateSystem:'geo',
             data:points,
-            symbolSize:6,
-            itemStyle:{color:currentType==='高速站'?'#fbbf24':'#38bdf8',opacity:.8},
+            symbolSize:3,
+            itemStyle:{color:currentType==='高速站'?'#fbbf24':'#38bdf8',opacity:.6},
             emphasis:{itemStyle:{color:'#fbbf24',opacity:1,shadowBlur:10}}
         }]
     },true);
