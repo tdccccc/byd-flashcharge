@@ -163,8 +163,6 @@
         <div class="cards-top" id="cardsTop">
             <div class="hero" style="opacity:.3;height:180px"></div>
         </div>
-        <div class="stitle">站点类型分布</div>
-        <div class="tstrip" id="typeGrid"></div>
         <div class="tab-bar" id="tabBar">
             <button class="tab-btn active" data-type="all">全部站点</button>
             <button class="tab-btn" data-type="高速站">高速站</button>
@@ -239,7 +237,6 @@ async function loadData(){
         ]);
         cityData=cities; allStations=stations;
         renderSummary(summary);
-        renderTypeBreakdown(summary.type_breakdown);
         renderCityTable(cities);
         renderTrend(growth);
         renderMap(cities);
