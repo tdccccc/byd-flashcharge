@@ -21,9 +21,10 @@
         .container{max-width:1440px;margin:0 auto;padding:1.5rem}
         .cards-top{margin-bottom:1.5rem}
         .hero{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:1.5rem}
-        .hero-main{display:flex;align-items:baseline;gap:.8rem;margin-bottom:1rem;flex-wrap:nowrap;white-space:nowrap;overflow-x:auto}
-        .hero-main .value{font-size:2.8rem;font-weight:800;color:var(--ac);margin:0}
-        .hero-main .delta{margin:0;white-space:nowrap}
+        .hero-main{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem}
+        .hero-main-stat{text-align:center;padding:.5rem}
+        .hero-main-stat .value{font-size:2.4rem;font-weight:800;color:var(--ac);margin-bottom:.2rem}
+        .hero-main-stat .hm-label{font-size:.82rem;color:var(--t2)}
         .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem}
         .hero-stat{text-align:center;padding:.8rem .4rem;background:rgba(255,255,255,.03);border-radius:10px}
         .hero-stat .hs-val{font-size:1.3rem;font-weight:700;margin-bottom:.2rem}
@@ -105,8 +106,8 @@
         /* Responsive: Mobile */
         @media(max-width:640px){
             .hero{padding:1rem;border-radius:12px}
-            .hero-main .value{font-size:1.8rem}
-            .hero-main{gap:.5rem;font-size:.8rem}
+            .hero-main-stat .value{font-size:1.8rem}
+            .hero-main-stat .hm-label{font-size:.72rem}
             .hero-stats{grid-template-columns:repeat(2,1fr);gap:.6rem}
             .hero-stat{padding:.6rem .3rem}
             .hero-stat .hs-val{font-size:1rem}
@@ -255,9 +256,8 @@ function renderSummary(data){
     document.getElementById('cardsTop').innerHTML=`
         <div class="hero">
             <div class="hero-main">
-                <div class="value cu" data-t="${s.total_stations}">0</div>
-                <span style="color:var(--t3);font-size:1rem">座闪充站</span>
-                <div class="delta">▲ ${s.new_stations_today} 今日新增</div>
+                <div class="hero-main-stat"><div class="value cu" data-t="${s.total_stations}">0</div><div class="hm-label">⚡ 闪充站</div></div>
+                <div class="hero-main-stat"><div class="value" style="color:var(--grn)">+${s.new_stations_today}</div><div class="hm-label">📈 今日新增</div></div>
             </div>
             <div class="hero-stats">
                 <div class="hero-stat"><div class="hs-val" style="color:var(--amb)"><span class="cu" data-t="${s.total_flash_connectors||0}">0</span></div><div class="hs-label">🔌 闪充桩</div></div>
