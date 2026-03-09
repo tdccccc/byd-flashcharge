@@ -19,8 +19,15 @@
         .clock-bar .dot{width:6px;height:6px;border-radius:50%;background:var(--grn);animation:pulse 2s infinite}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
         .container{max-width:1440px;margin:0 auto;padding:1.5rem}
-        .cards-top{margin-bottom:.8rem}
-        .cards-bottom{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+        .cards-top{margin-bottom:1.5rem}
+        .hero{background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:1.5rem}
+        .hero-main{display:flex;align-items:baseline;gap:.8rem;margin-bottom:1rem}
+        .hero-main .value{font-size:2.8rem;font-weight:800;color:var(--ac);margin:0}
+        .hero-main .delta{margin:0}
+        .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem}
+        .hero-stat{text-align:center;padding:.8rem .4rem;background:rgba(255,255,255,.03);border-radius:10px}
+        .hero-stat .hs-val{font-size:1.3rem;font-weight:700;margin-bottom:.2rem}
+        .hero-stat .hs-label{font-size:.72rem;color:var(--t3)}
         .card{background:var(--card);border-radius:16px;padding:1.5rem;border:1px solid var(--bdr);transition:border-color .3s,transform .2s;display:flex;flex-direction:column;min-height:170px}
         .card:hover{border-color:var(--bdr-h);transform:translateY(-2px)}
         .card .card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:auto}
@@ -89,18 +96,20 @@
 
         /* Responsive: Tablet */
         @media(max-width:1024px){
-            .cards-top{grid-template-columns:1fr 1fr}
-            .cards-bottom{grid-template-columns:auto 1fr}
-            .cards-bottom .card{flex:none}
+            .hero-stats{grid-template-columns:repeat(4,1fr)}
+            .hero-stat .hs-val{font-size:1.1rem}
             .g2,.gmc{grid-template-columns:1fr}
             .tstrip{grid-template-columns:1fr}
             .tab-bar{flex-wrap:wrap}
         }
         /* Responsive: Mobile */
         @media(max-width:640px){
-            .cards-top{grid-template-columns:1fr 1fr;gap:.6rem}
-            .cards-bottom{gap:.6rem;grid-template-columns:1fr 2fr}
-            .cards-bottom .card{flex:none}
+            .hero{padding:1rem;border-radius:12px}
+            .hero-main .value{font-size:2.2rem}
+            .hero-stats{grid-template-columns:repeat(2,1fr);gap:.6rem}
+            .hero-stat{padding:.6rem .3rem}
+            .hero-stat .hs-val{font-size:1.1rem}
+            .hero-stat .hs-label{font-size:.65rem}
             .card{padding:1rem;border-radius:12px;min-height:140px}
             .card .value{font-size:1.6rem}
             .card .ci{width:28px;height:28px;font-size:.9rem}
@@ -150,11 +159,7 @@
     </div>
     <div class="container">
         <div class="cards-top" id="cardsTop">
-            <div class="card" style="height:80px;opacity:.3"></div>
-        </div>
-        <div class="cards-bottom" id="cardsBottom">
-            <div class="card" style="height:120px;opacity:.3"></div>
-            <div class="card" style="height:120px;opacity:.3"></div>
+            <div class="hero" style="opacity:.3;height:180px"></div>
         </div>
         <div class="stitle">站点类型分布</div>
         <div class="tstrip" id="typeGrid"></div>
@@ -244,40 +249,20 @@ async function loadData(){
 }
 
 function renderSummary(data){
-    if(!data.latest){document.getElementById('cardsTop').innerHTML='<div class="loading" style="grid-column:1/-1">暂无数据</div>';return;}
+    if(!data.latest){document.getElementById('cardsTop').innerHTML='<div class="loading">暂无数据</div>';return;}
     const s=data.latest;
-    const avgConn=s.total_stations>0?((s.total_flash_connectors||0)/s.total_stations).toFixed(1):'--';
     document.getElementById('cardsTop').innerHTML=`
-        <div class="card c1" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;padding:1.2rem 1.5rem">
-            <div style="display:flex;align-items:center;gap:1rem">
-                <div class="ci" style="margin:0">⚡</div>
-                <div>
-                    <div class="label-top" style="margin-bottom:.2rem">站点总数</div>
-                    <div style="display:flex;align-items:baseline;gap:.6rem">
-                        <div class="value cu" data-t="${s.total_stations}" style="margin:0">0</div>
-                        <div class="delta" style="margin:0">▲ ${s.new_stations_today} 今日新增</div>
-                    </div>
-                </div>
+        <div class="hero">
+            <div class="hero-main">
+                <div class="value cu" data-t="${s.total_stations}">0</div>
+                <span style="color:var(--t3);font-size:1rem">座闪充站</span>
+                <div class="delta">▲ ${s.new_stations_today} 今日新增</div>
             </div>
-            <div style="display:flex;gap:1.5rem;align-items:center;color:var(--t2);font-size:.85rem">
-                <div>🎯 <span style="color:var(--pur);font-weight:600">${s.total_stations}</span><span style="color:var(--t3)"> / 20000</span></div>
-                <div>🏢 站中站 <span style="color:var(--ac);font-weight:500">${s.total_stations}</span><span style="color:var(--t3)"> / 18000</span></div>
-                <div>🛣️ 高速站 <span style="color:var(--amb);font-weight:500">0</span><span style="color:var(--t3)"> / 2000</span></div>
-            </div>
-        </div>`;
-    document.getElementById('cardsBottom').innerHTML=`
-        <div class="card c2">
-            <div class="card-top"><div class="ci">🔌</div><div class="label-top">闪充桩总数</div></div>
-            <div class="card-body">
-                <div class="value cu" data-t="${s.total_flash_connectors||0}">0</div>
-                <div class="delta" style="color:var(--t3);background:rgba(255,255,255,.04)">⌀ ${avgConn} 桩/站</div>
-            </div>
-        </div>
-        <div class="card c4">
-            <div class="card-top"><div class="ci">🏙️</div><div class="label-top">覆盖城市</div></div>
-            <div class="card-body">
-                <div class="value cu" data-t="${s.city_count}">0</div>
-                <div class="delta" style="color:var(--grn);background:rgba(52,211,153,.08)">📍 全国布局</div>
+            <div class="hero-stats">
+                <div class="hero-stat"><div class="hs-val" style="color:var(--amb)"><span class="cu" data-t="${s.total_flash_connectors||0}">0</span></div><div class="hs-label">🔌 闪充桩</div></div>
+                <div class="hero-stat"><div class="hs-val" style="color:var(--grn)"><span class="cu" data-t="${s.city_count}">0</span></div><div class="hs-label">🏙️ 覆盖城市</div></div>
+                <div class="hero-stat"><div class="hs-val" style="color:var(--pur)">${s.total_stations}<span style="color:var(--t3);font-size:.8rem"> / 18000</span></div><div class="hs-label">🏢 站中站目标</div></div>
+                <div class="hero-stat"><div class="hs-val" style="color:var(--pur)">0<span style="color:var(--t3);font-size:.8rem"> / 2000</span></div><div class="hs-label">🛣️ 高速站目标</div></div>
             </div>
         </div>`;
     document.querySelectorAll('.cu').forEach(el=>countUp(el,parseInt(el.dataset.t)||0));
