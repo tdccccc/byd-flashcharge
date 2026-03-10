@@ -202,11 +202,41 @@
     </div>
     <div class="footer">
         <p>比亚迪闪充站全国追踪 · 数据每日自动采集</p>
+        <p style="margin-top:.3rem">本站总访问量 <span id="busuanzi_value_site_pv"></span> 次</p>
         <p style="margin-top:.3rem">Powered by Cloudflare Pages + ECharts + Chart.js</p>
     </div>
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 <script>
 let cityData=[], allStations=[], currentType='all', sortCol='station_count', sortDir='desc';
+const CP={};function _p(v,c){c.split(' ').forEach(x=>{CP[x]=v})}
+_p('北京','北京');_p('上海','上海');_p('天津','天津');_p('重庆','重庆');
+_p('广东','广州 深圳 佛山 东莞 中山 珠海 汕头 清远 肇庆 云浮 阳江 湛江 茂名 江门 惠州 梅州 汕尾 河源 揭阳 潮州 韶关');
+_p('江苏','南京 苏州 无锡 镇江 常州 扬州 泰州 淮安 宿迁 徐州 南通 盐城 连云港');
+_p('浙江','杭州 宁波 温州 金华 嘉兴 绍兴 湖州 衢州 义乌 台州 丽水 舟山');
+_p('山东','济南 青岛 淄博 泰安 东营 潍坊 威海 烟台 济宁 日照 临沂 聊城 菏泽 德州 滨州 枣庄');
+_p('河南','郑州 开封 洛阳 南阳 信阳 许昌 新乡 安阳 濮阳 平顶山 商丘 周口 驻马店 鹤壁 焦作 三门峡 漯河');
+_p('四川','成都 自贡 泸州 内江 南充 德阳 绵阳 达州 遂宁 乐山 雅安 眉山 广安 巴中 广元 宜宾 攀枝花 资阳 凉山州');
+_p('湖北','武汉 黄石 宜昌 襄阳 荆州 鄂州 黄冈 荆门 孝感 咸宁 十堰 恩施 随州');
+_p('湖南','长沙 株洲 湘潭 衡阳 岳阳 常德 邵阳 益阳 张家界 怀化 永州 郴州 娄底 吉首 湘西');
+_p('河北','石家庄 唐山 保定 邯郸 邢台 沧州 衡水 张家口 承德 廊坊 秦皇岛');
+_p('福建','福州 厦门 泉州 龙岩 南平 漳州 三明 宁德 莆田');
+_p('安徽','合肥 芜湖 亳州 淮南 蚌埠 淮北 马鞍山 安庆 阜阳 滁州 铜陵 池州 黄山 宿州 巢湖 六安 宣城');
+_p('江西','南昌 九江 宜春 抚州 赣州 上饶 吉安 鹰潭 新余 景德镇 萍乡');
+_p('辽宁','沈阳 大连 鞍山 锦州 丹东 朝阳 营口 铁岭 盘锦 阜新 辽阳 葫芦岛 抚顺');
+_p('吉林','长春 吉林 四平 辽源 松原 白山 白城 延吉 通化');
+_p('黑龙江','哈尔滨 大庆 齐齐哈尔 牡丹江 佳木斯 鸡西 伊春 绥化 黑河 漠河');
+_p('山西','太原 晋中 大同 临汾 长治 运城 忻州 吕梁 晋城 阳泉 朔州');
+_p('陕西','西安 渭南 宝鸡 汉中 延安 咸阳 商洛 安康 榆林 略阳');
+_p('广西','南宁 桂林 柳州 钦州 北海 玉林 河池 崇左 贺州 百色 来宾 贵港 梧州');
+_p('云南','昆明 大理 丽江 玉溪 红河 文山 曲靖 德宏 普洱 西双版纳 保山');
+_p('贵州','贵阳 遵义 六盘水 凯里 铜仁 安顺 毕节 都匀 黔东南 黔西南');
+_p('海南','海口 三亚 儋州 五指山 万宁 琼海');
+_p('甘肃','兰州 张掖 敦煌 天水 武威 定西 陇南 庆阳 金昌 平凉 临夏');
+_p('宁夏','银川 中卫 固原 吴忠 石嘴山');
+_p('青海','西宁 海东');_p('西藏','拉萨 日喀则');
+_p('新疆','乌鲁木齐 库尔勒 喀什 和田 伊犁 阿勒泰 伊宁 哈密 昌吉');
+_p('内蒙古','呼和浩特 包头 通辽 赤峰 鄂尔多斯 海拉尔 乌兰浩特 巴彦淖尔 阿拉善盟 乌兰察布 乌海 兴安盟');
 
 // Clock
 function tick(){
@@ -306,14 +336,25 @@ function updateMap(){
         filtered=mapStations.filter(s=>!(s.attribute_tags||'').includes('高速'));
     }
     const points=filtered.map(s=>({name:s.station_name,value:[s.lng,s.lat,1]}));
+    // Aggregate station counts by province
+    const pc={};
+    cityData.forEach(c=>{const p=CP[c.city];if(p)pc[p]=(pc[p]||0)+c.station_count});
+    const provs=['北京','天津','河北','山西','内蒙古','辽宁','吉林','黑龙江','上海','江苏','浙江','安徽','福建','江西','山东','河南','湖北','湖南','广东','广西','海南','重庆','四川','贵州','云南','西藏','陕西','甘肃','青海','宁夏','新疆','台湾','香港','澳门'];
+    const provData=provs.map(name=>({name,value:pc[name]||0}));
     mapChart.setOption({
-        tooltip:{trigger:'item',formatter:p=>p.name||''},
+        tooltip:{trigger:'item',backgroundColor:'#1e293b',borderColor:'rgba(56,189,248,.3)',borderWidth:1,textStyle:{color:'#f1f5f9'},
+            formatter:function(p){
+                if(p.seriesType==='map')return '<b>'+p.name+'</b><br/>闪充站 '+(p.value||0)+' 座';
+                return p.name||'';
+            }},
         geo:{map:'china',roam:true,zoom:1.2,
             scaleLimit:{min:1,max:20},
             itemStyle:{areaColor:'#111827',borderColor:'#1e3a5f',borderWidth:1},
             regions:[],
             emphasis:{itemStyle:{areaColor:'#1a2744'},label:{show:true,color:'#fff',fontSize:10}}},
         series:[{
+            type:'map',geoIndex:0,data:provData,tooltip:{show:true}
+        },{
             type:'scatter',coordinateSystem:'geo',
             data:points,
             symbolSize:2,
