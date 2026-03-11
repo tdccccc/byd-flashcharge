@@ -1,5 +1,4 @@
 data/*
-!data/stations.db
 !data/scan_points.json
 __pycache__/
 .omc
