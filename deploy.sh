@@ -5,8 +5,8 @@ set -eo pipefail
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_DIR"
 
-# Activate conda environment
-eval "$(conda shell.bash hook)"
+# Activate conda environment (use full path for cron compatibility)
+eval "$(/home/tiandc/miniconda3/bin/conda shell.bash hook)"
 conda activate byd-flashcharge
 
 LOG="data/cron.log"
