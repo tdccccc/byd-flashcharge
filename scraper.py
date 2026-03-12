@@ -46,7 +46,14 @@ def fetch_stations(lat: float, lng: float, max_retries: int = 5) -> list:
 
             inner = json.loads(data.get("response", "{}"))
             if inner.get("code") != "0":
-                log.warning(f"API error at ({lat}, {lng}): {inner.get('message')}")
+                msg = inner.get("message", "")
+                if "繁忙" in msg or "稍后" in msg:
+                    if attempt < max_retries - 1:
+                        wait = 2 ** attempt + 1
+                        log.warning(f"Rate limited at ({lat}, {lng}), retry {attempt+1}/{max_retries} in {wait}s")
+                        time.sleep(wait)
+                        continue
+                log.warning(f"API error at ({lat}, {lng}): {msg}")
                 return []
 
             respond_data = json.loads(inner.get("respondData", "{}"))
