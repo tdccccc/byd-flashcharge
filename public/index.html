@@ -275,6 +275,7 @@ function renderSummary(data){
 
 // === Map with three-level drill-down ===
 let mapChart=null, mapLevel='china', mapProvince=null, mapCity=null;
+var _scatterData=[], _initZoom=1, _szTimer=null, _lastZoom=1;
 // Province GeoJSON cache
 const geoCache={};
 
@@ -344,6 +345,29 @@ function getDistrictCounts(stations, province, geoFeatures){
     return dc;
 }
 
+function clusterPoints(stations,precision){
+    var g={};
+    stations.forEach(function(s){
+        var k=Math.round(s.lat/precision)+','+Math.round(s.lng/precision);
+        if(!g[k]) g[k]={lat:0,lng:0,names:[],n:0};
+        g[k].lat+=s.lat; g[k].lng+=s.lng;
+        g[k].names.push(s.station_name); g[k].n++;
+    });
+    return Object.values(g).map(function(c){
+        return {name:c.n>1?c.n+'座站点':c.names[0],
+            value:[c.lng/c.n,c.lat/c.n,c.n],_names:c.names};
+    });
+}
+function scatterTip(p){
+    if(!p.data||!p.data._names) return p.name||'';
+    var n=p.data._names;
+    if(n.length===1) return n[0];
+    var s='<b>'+n.length+'座站点</b>';
+    n.slice(0,5).forEach(function(x){s+='<br/>· '+x;});
+    if(n.length>5) s+='<br/>…共'+n.length+'座';
+    return s;
+}
+
 async function loadProvinceGeo(province){
     if(geoCache[province]) return geoCache[province];
     try{
@@ -364,6 +388,19 @@ async function loadProvinceGeo(province){
 
 function renderMap(){
     mapChart=echarts.init(document.getElementById('chinaMap'));
+    mapChart.on('georoam',function(){
+        if(!_scatterData.length) return;
+        var z=mapChart.getOption().geo[0].zoom;
+        if(Math.abs(z-_lastZoom)<0.01) return;
+        _lastZoom=z;
+        clearTimeout(_szTimer);
+        _szTimer=setTimeout(function(){
+            var f=Math.pow(_lastZoom/_initZoom,0.4);
+            mapChart.setOption({animation:false,series:[{},{data:_scatterData.map(function(d){
+                return {name:d.name,value:d.value,_names:d._names,symbolSize:Math.round(d._sz*f)};
+            })}]});
+        },100);
+    });
     showChinaMap();
     window.addEventListener('resize',()=>mapChart&&mapChart.resize());
 }
@@ -381,6 +418,7 @@ function showChinaMap(){
         return {name, value:v};
     });
     const points=filtered.map(s=>({name:s.station_name,value:[s.lng,s.lat,1]}));
+    _scatterData=[]; _initZoom=1.2; _lastZoom=1.2;
     mapChart.setOption({
         tooltip:{trigger:'item',backgroundColor:'#1e293b',borderColor:'rgba(56,189,248,.3)',borderWidth:1,textStyle:{color:'#f1f5f9'},
             formatter:function(p){
@@ -421,6 +459,7 @@ async function drillToProvince(provName){
     const filtered=getFilteredStations();
     const provStations=filtered.filter(s=>(s.province||'')===fullProv);
     const points=provStations.map(s=>({name:s.station_name,value:[s.lng,s.lat,1]}));
+    _scatterData=[]; _initZoom=1.0; _lastZoom=1.0;
 
     // Municipalities: province===city, use point-in-polygon to assign districts
     const isMunicipality=provStations.length>0&&provStations[0].city===fullProv;
@@ -490,7 +529,9 @@ function drillToCity(province, cityName){
     const span=Math.max(maxLat-minLat, maxLng-minLng, 0.05);
     const zoom=Math.min(14, Math.max(6, 3/span));
 
-    const points=cityStations.map(s=>({name:s.station_name,value:[s.lng,s.lat,1]}));
+    const points=clusterPoints(cityStations,0.003);
+    points.forEach(function(p){var n=p.value[2]; p._sz=n>1?Math.max(8,Math.sqrt(n)*4):5; p.symbolSize=p._sz;});
+    _scatterData=points; _initZoom=zoom; _lastZoom=zoom;
 
     // Use the parent province map
     const cached=geoCache[province.replace(/省|市|自治区|壮族|回族|维吾尔/g,'')]||geoCache[province];
@@ -498,7 +539,7 @@ function drillToCity(province, cityName){
 
     mapChart.setOption({
         tooltip:{trigger:'item',backgroundColor:'#1e293b',borderColor:'rgba(56,189,248,.3)',borderWidth:1,textStyle:{color:'#f1f5f9'},
-            formatter:function(p){return p.name||'';}},
+            formatter:function(p){if(p.seriesType==='scatter') return scatterTip(p); return p.name||'';}},
         geo:{map:mapName,roam:true,center:[cLng,cLat],zoom:zoom,
             scaleLimit:{min:1,max:50},
             itemStyle:{areaColor:'#111827',borderColor:'#1e3a5f',borderWidth:1},
@@ -507,7 +548,7 @@ function drillToCity(province, cityName){
             type:'map',geoIndex:0,data:[],tooltip:{show:false}
         },{
             type:'scatter',coordinateSystem:'geo',
-            data:points, symbolSize:6,
+            data:points,
             itemStyle:{color:currentType==='高速站'?'#fbbf24':'#38bdf8',opacity:.8},
             emphasis:{itemStyle:{color:'#fbbf24',opacity:1,shadowBlur:10}}
         }]
