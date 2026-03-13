@@ -164,7 +164,7 @@
             <span id="updateTime">加载中...</span>
         </div>
     </div>
-    <div class="notice-bar">⚠️ 免责声明：本网站为迪粉个人项目，非比亚迪官方出品。<br>所有闪充站数据均通过公开方式采集自”比亚迪闪充App”，并经过程序自动整理展示。<br>数据可能存在延迟、误差或遗漏，仅供参考。<br>若据与官方最新信息存在差异，请以比亚迪官方App或官方公告为准。</div>
+    <div class="notice-bar">⚠️ 免责声明：本网站为迪粉个人项目，非比亚迪官方出品。<br>所有闪充站数据均通过公开方式采集自”比亚迪闪充App”，并经过程序自动整理展示。<br>数据可能存在延迟、误差或遗漏，仅供参考。<br>若与官方最新信息存在差异，请以比亚迪官方App或官方公告为准。</div>
     <div class="container">
         <div class="cards-top" id="cardsTop">
             <div class="hero" style="opacity:.3;height:180px"></div>
@@ -307,6 +307,43 @@ function getCityCounts(stations, province){
     return cc;
 }
 
+// Point-in-polygon (ray casting) for [lng, lat] against a polygon ring
+function pointInRing(lng,lat,ring){
+    let inside=false;
+    for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+        const xi=ring[i][0],yi=ring[i][1],xj=ring[j][0],yj=ring[j][1];
+        if((yi>lat)!==(yj>lat)&&lng<(xj-xi)*(lat-yi)/(yj-yi)+xi) inside=!inside;
+    }
+    return inside;
+}
+
+function pointInFeature(lng,lat,feature){
+    const geom=feature.geometry;
+    if(!geom) return false;
+    const polys=geom.type==='MultiPolygon'?geom.coordinates:
+                geom.type==='Polygon'?[geom.coordinates]:[];
+    for(const poly of polys){
+        if(pointInRing(lng,lat,poly[0])) return true;
+    }
+    return false;
+}
+
+// For municipalities: assign stations to districts via point-in-polygon
+function getDistrictCounts(stations, province, geoFeatures){
+    const dc={};
+    geoFeatures.forEach(f=>dc[f.properties.name||'']=0);
+    stations.forEach(s=>{
+        if((s.province||'')!==province) return;
+        for(const f of geoFeatures){
+            if(pointInFeature(s.lng,s.lat,f)){
+                dc[f.properties.name||'']++;
+                return;
+            }
+        }
+    });
+    return dc;
+}
+
 async function loadProvinceGeo(province){
     if(geoCache[province]) return geoCache[province];
     try{
@@ -382,16 +419,20 @@ async function drillToProvince(provName){
     updateBreadcrumb();
 
     const filtered=getFilteredStations();
-    const cc=getCityCounts(filtered, fullProv);
     const provStations=filtered.filter(s=>(s.province||'')===fullProv);
     const points=provStations.map(s=>({name:s.station_name,value:[s.lng,s.lat,1]}));
 
-    // Build city data from GeoJSON features
+    // Municipalities: province===city, use point-in-polygon to assign districts
+    const isMunicipality=provStations.length>0&&provStations[0].city===fullProv;
+    const cc=isMunicipality
+        ?getDistrictCounts(filtered, fullProv, cached.geo.features)
+        :getCityCounts(filtered, fullProv);
+
+    // Build city/district data from GeoJSON features
     const cityData2=cached.geo.features.map(f=>{
         const cname=f.properties.name||'';
-        // Match city names: DB may store "深圳市" while GeoJSON uses "深圳市" or "深圳"
         let val=cc[cname]||0;
-        if(!val){
+        if(!val&&!isMunicipality){
             // Try matching with/without 市 suffix
             for(const [k,v] of Object.entries(cc)){
                 if(k.startsWith(cname)||cname.startsWith(k)){val=v;break;}
