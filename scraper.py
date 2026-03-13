@@ -51,7 +51,6 @@ class GlobalBackoff:
             new_resume = time.time() + wait_seconds
             if new_resume > self._resume_at:
                 self._resume_at = new_resume
-                REQUEST_TEMPLATE["imeiMD5"] = generate_imei_md5()
 
     def record_network_error(self):
         with self._lock:
@@ -89,6 +88,7 @@ def fetch_stations(lat: float, lng: float, max_retries: int = 5) -> list:
         _backoff.wait_if_needed()
 
         req_data = REQUEST_TEMPLATE.copy()
+        req_data["imeiMD5"] = generate_imei_md5()
         req_data["lat"] = lat
         req_data["lng"] = lng
         req_data["reqTimestamp"] = int(time.time() * 1000)

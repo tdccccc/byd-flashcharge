@@ -61,7 +61,9 @@ python scan_points.py
 python scraper.py
 ```
 
-全量扫描约 2-3 分钟（50 并发），自动入库 + 地理编码。
+全量扫描约 2-3 分钟（20 并发），自动入库 + 地理编码。
+
+每次请求使用随机设备标识（imeiMD5），遇到 API 限流时全局退避（所有线程同步暂停），错误汇总输出到日志。
 
 ### 启动网页
 
@@ -84,7 +86,7 @@ python web_server.py
 byd-flashcharge/
 ├── config.example.py      # 配置模板（不含密钥）
 ├── config.py              # 实际配置（git 忽略）
-├── scraper.py             # 数据抓取（并发扫描 + 自动重试）
+├── scraper.py             # 数据抓取（并发扫描 + 全局退避 + 自动重试）
 ├── scan_points.py         # 扫描点生成（区县质心 + 中点 + 高速）
 ├── geocoder.py            # 地理编码（离线 PiP + 高德 API 备用）
 ├── database.py            # SQLite 数据库操作
