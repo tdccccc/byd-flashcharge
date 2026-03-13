@@ -21,7 +21,13 @@ def export_summary(conn, today):
         SELECT
             CASE
                 WHEN attribute_tags LIKE '%高速%' THEN '高速站'
-                ELSE '站中站'
+                WHEN station_name LIKE '%比亚迪%'
+                    OR station_name LIKE '%方程豹%'
+                    OR station_name LIKE '%腾势%'
+                    OR station_name LIKE '%仰望%'
+                    OR station_name LIKE '%领汇%'
+                    OR station_name LIKE '%4S%' THEN '4S站'
+                ELSE '公共站'
             END as station_type,
             COUNT(*) as count
         FROM stations
