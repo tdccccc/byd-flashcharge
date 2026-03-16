@@ -25,7 +25,7 @@
         .hero-main-stat{text-align:center;padding:.5rem}
         .hero-main-stat .value{font-size:2.8rem;font-weight:800;color:var(--ac);margin-bottom:.2rem}
         .hero-main-stat .hm-label{font-size:.95rem;color:var(--t2)}
-        .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem}
+        .hero-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:.8rem}
         .hero-stat{text-align:center;padding:.8rem .4rem;background:rgba(255,255,255,.03);border-radius:10px}
         .hero-stat .hs-val{font-size:1.6rem;font-weight:700;margin-bottom:.3rem}
         .hero-stat .hs-label{font-size:.85rem;color:var(--t3);white-space:nowrap}
@@ -104,7 +104,7 @@
 
         /* Responsive: Tablet */
         @media(max-width:1024px){
-            .hero-stats{grid-template-columns:repeat(4,1fr)}
+            .hero-stats{grid-template-columns:repeat(5,1fr)}
             .hero-stat .hs-val{font-size:1.1rem}
             .g2,.gmc{grid-template-columns:1fr}
             .tstrip{grid-template-columns:1fr}
@@ -171,7 +171,8 @@
         </div>
         <div class="tab-bar" id="tabBar">
             <button class="tab-btn active" data-type="all">全部站点</button>
-            <button class="tab-btn" data-type="站中站">站中站</button>
+            <button class="tab-btn" data-type="4S站">4S站</button>
+            <button class="tab-btn" data-type="公共站">公共站</button>
             <button class="tab-btn" data-type="高速站">高速站</button>
         </div>
         <div class="cb" style="margin-bottom:1.5rem">
@@ -253,9 +254,11 @@ function renderSummary(data){
     if(!data.latest){document.getElementById('cardsTop').innerHTML='<div class="loading">暂无数据</div>';return;}
     const s=data.latest;
     const tb=data.type_breakdown||[];
-    const zzz=tb.find(t=>t.station_type==='站中站');
+    const fourSStation=tb.find(t=>t.station_type==='4S站');
+    const publicStation =tb.find(t=>t.station_type==='公共站');
     const gss=tb.find(t=>t.station_type==='高速站');
-    const zzzCount=zzz?zzz.count:0;
+    const fourSCount=fourSStation?fourSStation.count:0;
+    const publicCount=publicStation?publicStation.count:0;
     const gssCount=gss?gss.count:0;
     document.getElementById('cardsTop').innerHTML=`
         <div class="hero">
@@ -266,7 +269,8 @@ function renderSummary(data){
             <div class="hero-stats">
                 <div class="hero-stat"><div class="hs-val" style="color:var(--amb)"><span class="cu" data-t="${s.total_flash_connectors||0}">0</span></div><div class="hs-label">🔌 闪充桩</div></div>
                 <div class="hero-stat"><div class="hs-val" style="color:var(--grn)"><span class="cu" data-t="${s.city_count}">0</span></div><div class="hs-label">🏙️ 覆盖城市</div></div>
-                <div class="hero-stat"><div class="hs-val" style="color:var(--pur)"><span class="cu" data-t="${zzzCount}">0</span><span style="color:var(--t3);font-size:.8rem"> / 18000</span></div><div class="hs-label">🏢 站中站</div></div>
+                <div class="hero-stat"><div class="hs-val" style="color:var(--pur)"><span class="cu" data-t="${fourSCount}">0</span><span style="color:var(--t3);font-size:.8rem"> / 3000</span></div><div class="hs-label">🚗 4S站</div></div>
+                <div class="hero-stat"><div class="hs-val" style="color:var(--pur)"><span class="cu" data-t="${publicCount}">0</span><span style="color:var(--t3);font-size:.8rem"> / 15000</span></div><div class="hs-label">🏢 公共站</div></div>
                 <div class="hero-stat"><div class="hs-val" style="color:var(--pur)"><span class="cu" data-t="${gssCount}">0</span><span style="color:var(--t3);font-size:.8rem"> / 2000</span></div><div class="hs-label">🛣️ 高速站</div></div>
             </div>
         </div>`;
@@ -281,8 +285,22 @@ const geoCache={};
 
 function getFilteredStations(){
     let filtered=allStations;
-    if(currentType==='高速站') filtered=allStations.filter(s=>(s.attribute_tags||'').includes('高速'));
-    else if(currentType==='站中站') filtered=allStations.filter(s=>!(s.attribute_tags||'').includes('高速'));
+    if (currentType === '高速站') {
+        filtered = allStations.filter(s => (s.attribute_tags || '').includes('高速'));
+    } else if (currentType === '4S站') {
+        filtered = allStations.filter(s => {
+            if ((s.attribute_tags || '').includes('高速')) return false;
+            const name = s.station_name || '';
+            return name.includes('比亚迪') || name.includes('方程豹') || name.includes('腾势') || name.includes('仰望') || name.includes('领汇') || name.includes('4S');
+        });
+    } else if (currentType === '公共站') {
+        filtered = allStations.filter(s => {
+            if ((s.attribute_tags || '').includes('高速')) return false;
+            const name = s.station_name || '';
+            const is4s = name.includes('比亚迪') || name.includes('方程豹') || name.includes('腾势') || name.includes('仰望') || name.includes('领汇') || name.includes('4S');
+            return !is4s;
+        });
+    }
     return filtered;
 }
 
